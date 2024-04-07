@@ -1,61 +1,57 @@
-def isDelimeter(char: str):
-    DELIMETERS = [' ', '+', '-', '*', '/', ',', ';', '%', '>', '<', '=', '(', ')', '[', ']', '{', '}']
-    
-    return char in DELIMETERS
+from ply import lex
+import ply.yacc as yacc
 
-def isOperator(char: str):
-    OPERATOR = ['+', '-', '*', '/', '>', '<', '=']
+tokens = ('PACKAGE_NAME', 'LPAREN', 'RPAREN', 'STRING', 'CLASS', 'NUMBER', 'CONTENT')
 
-    return char in OPERATOR
+t_ignore = ' \t'
 
-def isValidIdentifier(str: str):
-    INVALID_START_IDENTIFIERS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+t_LPAREN = r'\('
+t_RPAREN = r'\)'
+t_STRING = r'[a-zA-Z_][a-zA-Z0-9_]'
+# t_COMPONENT = r'\@'
 
-    return str[0] not in INVALID_START_IDENTIFIERS and not isDelimeter(str[0])
+def t_CONTENT(t):
+    r'.+'
+    return t
 
-def isKeyword(str: str):
-    KEYWORDS = ['change', 'upgrade']
+def t_NUMBER(t):
+    r'\d+'
+    t.value = int(t.value)
+    return t
 
-    return str in KEYWORDS
+def t_ignore_newline(t):
+    r'\n+'
+    t.lexer.lineno += t.value.count('\n')
 
-def isInteger(str: str):
-    return str.isdigit()
+def t_error(t):
+    print(f'Illegal character {t.value[0]!r}')
+    t.lexer.skip(1)
 
-def lexicalAnalyzer(input: list[str]):
-    left = 0
-    right = 0
-    length = len(input)
+lexer = lex.lex()
 
-    def isValidIndex():
-        return len(input)-1 >= right
+# Parsing
 
-    while(right < length and left <= right):
-        try:
-            if isValidIndex() and not isDelimeter(input[right]):
-                right += 1
+def p_expression(p):
+    '''
+    expression : term
+    '''
+    p[0] = p[1]
 
-            if isValidIndex() and isDelimeter(input[right]) and left == right:
-                if isOperator(input[right]):
-                    print(f'Operator: {input[right]}')
-                right += 1
-                left = right
-            elif isValidIndex() and isDelimeter(input[right]) and left != right or (right == len and left != right):
-                substr = input[left:right]
+def p_term_factor(p):
+    '''
+    term : factor
+    '''
+    p[0] = p[1]
 
-                if isKeyword(substr):
-                    print(f'Keyword: {substr}')
-                elif isInteger(substr):
-                    print(f'Integer: {substr}')
-                elif isValidIdentifier(substr):
-                    print(f'Identifier: {substr}')
-                
-                left = right
+def p_factor_grouped(p):
+    '''
+    factor : LPAREN expression RPAREN
+    '''
+    p[0] = ('grouped', p[2])
 
-        except KeyboardInterrupt:
-            break
+def p_error(p):
+    print(f"Syntax error at {p.value!r}")
 
-    return
-
-lexicalAnalyzer('> change , ; update 2 <myvaria upgrade;')
-
-
+parser = yacc.yacc(debug=True)
+ast = parser.parse(input="7", lexer=lexer)
+# print(ast)

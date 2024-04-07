@@ -1,0 +1,34 @@
+Created by PLY (http://www.dabeaz.com/ply)
+
+Unused terminals:
+
+    CLASS
+    CONTENT
+    NUMBER
+    PACKAGE_NAME
+    STRING
+
+Grammar
+
+Rule 0     S' -> expression
+Rule 1     expression -> term
+Rule 2     term -> factor
+Rule 3     factor -> LPAREN expression RPAREN
+
+Terminals, with rules where they appear
+
+CLASS                : 
+CONTENT              : 
+LPAREN               : 3
+NUMBER               : 
+PACKAGE_NAME         : 
+RPAREN               : 3
+STRING               : 
+error                : 
+
+Nonterminals, with rules where they appear
+
+expression           : 3 0
+factor               : 2
+term                 : 1
+
